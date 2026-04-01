@@ -9,21 +9,20 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [22, 20, 18, 16, 14, 12, 10, 8]
-    name: Run tests on Node.js ${{ matrix.node-version }}
+        go-version: ['1.25', '1.24']
+    name: Build and test with Go ${{ matrix.go-version }}
     steps:
-    - name: Setup Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
     - name: Checkout repository
       uses: actions/checkout@v4
-    - name: Install dependencies
-      run: npm install --legacy-peer-deps
-    - name: Run tests
-      run: npm test
-    - if: matrix.node-version == 22
-      name: Send coverage info to Codecov
-      uses: codecov/codecov-action@v5
+    - name: Set up Go ${{ matrix.go-version }}
+      uses: actions/setup-go@v5
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
+        go-version: ${{ matrix.go-version }}
+    - name: Check formatting
+      run: test -z "$(gofmt -l .)"
+    - name: Build
+      run: go build ./...
+    - name: Vet
+      run: go vet ./...
+    - name: Test
+      run: go test ./...

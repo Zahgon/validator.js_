@@ -1,0 +1,101 @@
+// Copyright (c) 2018 Chris O'Hara <cohara87@gmail.com>
+//
+// Ported from validator.js, which is distributed under the MIT licence; see LICENSE.
+
+package validator
+
+// vatSimpleEntries holds the value added tax numbers that are only a pattern; the countries whose number also
+// carries a check digit are written out in vat.go. The order is the order the library holds them in.
+var vatSimpleEntries = []localeRegexp{
+	{"AT", "^(AT)?U\\d{8}$", ""},
+	{"BE", "^(BE)?\\d{10}$", ""},
+	{"BG", "^(BG)?\\d{9,10}$", ""},
+	{"HR", "^(HR)?\\d{11}$", ""},
+	{"CY", "^(CY)?\\w{9}$", ""},
+	{"CZ", "^(CZ)?\\d{8,10}$", ""},
+	{"DK", "^(DK)?\\d{8}$", ""},
+	{"EE", "^(EE)?\\d{9}$", ""},
+	{"FI", "^(FI)?\\d{8}$", ""},
+	{"FR", "^(FR)([A-Z0-9]{2}\\d{9})$", ""},
+	{"DE", "^(DE)?\\d{9}$", ""},
+	{"EL", "^(EL)?\\d{9}$", ""},
+	{"HU", "^(HU)?\\d{8}$", ""},
+	{"IE", "^(IE)?\\d{7}\\w{1}(W)?$", ""},
+	{"IT", "^(IT)?\\d{11}$", ""},
+	{"LV", "^(LV)?\\d{11}$", ""},
+	{"LT", "^(LT)?\\d{9,12}$", ""},
+	{"LU", "^(LU)?\\d{8}$", ""},
+	{"MT", "^(MT)?\\d{8}$", ""},
+	{"NL", "^(NL)?\\d{9}B\\d{2}$", ""},
+	{"PL", "^(PL)?(\\d{10}|(\\d{3}-\\d{3}-\\d{2}-\\d{2})|(\\d{3}-\\d{2}-\\d{2}-\\d{3}))$", ""},
+	{"RO", "^(RO)?\\d{2,10}$", ""},
+	{"SK", "^(SK)?\\d{10}$", ""},
+	{"SI", "^(SI)?\\d{8}$", ""},
+	{"ES", "^(ES)?\\w\\d{7}[A-Z]$", ""},
+	{"SE", "^(SE)?\\d{12}$", ""},
+	{"AL", "^(AL)?\\w{9}[A-Z]$", ""},
+	{"MK", "^(MK)?\\d{13}$", ""},
+	{"BY", "^(\u0423\u041d\u041f )?\\d{9}$", ""},
+	{"CA", "^(CA)?\\d{9}$", ""},
+	{"IS", "^(IS)?\\d{5,6}$", ""},
+	{"IN", "^(IN)?\\d{15}$", ""},
+	{"ID", "^(ID)?(\\d{15}|(\\d{2}.\\d{3}.\\d{3}.\\d{1}-\\d{3}.\\d{3}))$", ""},
+	{"IL", "^(IL)?\\d{9}$", ""},
+	{"KZ", "^(KZ)?\\d{12}$", ""},
+	{"NZ", "^(NZ)?\\d{9}$", ""},
+	{"NG", "^(NG)?(\\d{12}|(\\d{8}-\\d{4}))$", ""},
+	{"NO", "^(NO)?\\d{9}MVA$", ""},
+	{"PH", "^(PH)?(\\d{12}|\\d{3} \\d{3} \\d{3} \\d{3})$", ""},
+	{"RU", "^(RU)?(\\d{10}|\\d{12})$", ""},
+	{"SM", "^(SM)?\\d{5}$", ""},
+	{"SA", "^(SA)?\\d{15}$", ""},
+	{"RS", "^(RS)?\\d{9}$", ""},
+	{"TR", "^(TR)?\\d{10}$", ""},
+	{"UA", "^(UA)?\\d{12}$", ""},
+	{"GB", "^GB((\\d{3} \\d{4} ([0-8][0-9]|9[0-6]))|(\\d{9} \\d{3})|(((GD[0-4])|(HA[5-9]))[0-9]{2}))$", ""},
+	{"UZ", "^(UZ)?\\d{9}$", ""},
+	{"AR", "^(AR)?\\d{11}$", ""},
+	{"BO", "^(BO)?\\d{7}$", ""},
+	{"BR", "^(BR)?((\\d{2}.\\d{3}.\\d{3}\\/\\d{4}-\\d{2})|(\\d{3}.\\d{3}.\\d{3}-\\d{2}))$", ""},
+	{"CL", "^(CL)?\\d{8}-\\d{1}$", ""},
+	{"CO", "^(CO)?\\d{10}$", ""},
+	{"CR", "^(CR)?\\d{9,12}$", ""},
+	{"EC", "^(EC)?\\d{13}$", ""},
+	{"SV", "^(SV)?\\d{4}-\\d{6}-\\d{3}-\\d{1}$", ""},
+	{"GT", "^(GT)?\\d{7}-\\d{1}$", ""},
+	{"HN", "^(HN)?$", ""},
+	{"MX", "^(MX)?\\w{3,4}\\d{6}\\w{3}$", ""},
+	{"NI", "^(NI)?\\d{3}-\\d{6}-\\d{4}\\w{1}$", ""},
+	{"PA", "^(PA)?$", ""},
+	{"PY", "^(PY)?\\d{6,8}-\\d{1}$", ""},
+	{"PE", "^(PE)?\\d{11}$", ""},
+	{"DO", "^(DO)?(\\d{11}|(\\d{3}-\\d{7}-\\d{1})|[1,4,5]{1}\\d{8}|([1,4,5]{1})-\\d{2}-\\d{5}-\\d{1})$", ""},
+	{"UY", "^(UY)?\\d{12}$", ""},
+	{"VE", "^(VE)?[J,G,V,E]{1}-(\\d{9}|(\\d{8}-\\d{1}))$", ""},
+}
+
+// vatOrder is every country the library knows a value added tax number for, in its own order.
+var vatOrder = []string{
+	"AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "EL", "HU", "IE", "IT", "LV", "LT", "LU",
+	"MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE", "AL", "MK", "AU", "BY", "CA", "IS", "IN", "ID", "IL",
+	"KZ", "NZ", "NG", "NO", "PH", "RU", "SM", "SA", "RS", "CH", "TR", "UA", "GB", "UZ", "AR", "BO", "BR", "CL",
+	"CO", "CR", "EC", "SV", "GT", "HN", "MX", "NI", "PA", "PY", "PE", "DO", "UY", "VE",
+}
+
+// licensePlateEntries holds the number plates that are only a pattern, with trimmed telling whether the library
+// tries the pattern against the trimmed string.
+var licensePlateEntries = []licensePlatePattern{
+	{"cs-CZ", "^(([ABCDEFHIJKLMNPRSTUVXYZ]|[0-9])-?){5,8}$", "", false},
+	{"de-DE", "^((A|AA|AB|AC|AE|AH|AK|AM|AN|A\u00d6|AP|AS|AT|AU|AW|AZ|B|BA|BB|BC|BE|BF|BH|BI|BK|BL|BM|BN|BO|B\u00d6|BS|BT|BZ|C|CA|CB|CE|CO|CR|CW|D|DA|DD|DE|DH|DI|DL|DM|DN|DO|DU|DW|DZ|E|EA|EB|ED|EE|EF|EG|EH|EI|EL|EM|EN|ER|ES|EU|EW|F|FB|FD|FF|FG|FI|FL|FN|FO|FR|FS|FT|F\u00dc|FW|FZ|G|GA|GC|GD|GE|GF|GG|GI|GK|GL|GM|GN|G\u00d6|GP|GR|GS|GT|G\u00dc|GV|GW|GZ|H|HA|HB|HC|HD|HE|HF|HG|HH|HI|HK|HL|HM|HN|HO|HP|HR|HS|HU|HV|HX|HY|HZ|IK|IL|IN|IZ|J|JE|JL|K|KA|KB|KC|KE|KF|KG|KH|KI|KK|KL|KM|KN|KO|KR|KS|KT|KU|KW|KY|L|LA|LB|LC|LD|LF|LG|LH|LI|LL|LM|LN|L\u00d6|LP|LR|LU|M|MA|MB|MC|MD|ME|MG|MH|MI|MK|ML|MM|MN|MO|MQ|MR|MS|M\u00dc|MW|MY|MZ|N|NB|ND|NE|NF|NH|NI|NK|NM|N\u00d6|NP|NR|NT|NU|NW|NY|NZ|OA|OB|OC|OD|OE|OF|OG|OH|OK|OL|OP|OS|OZ|P|PA|PB|PE|PF|PI|PL|PM|PN|PR|PS|PW|PZ|R|RA|RC|RD|RE|RG|RH|RI|RL|RM|RN|RO|RP|RS|RT|RU|RV|RW|RZ|S|SB|SC|SE|SG|SI|SK|SL|SM|SN|SO|SP|SR|ST|SU|SW|SY|SZ|TE|TF|TG|TO|TP|TR|TS|TT|T\u00dc|\u00dcB|UE|UH|UL|UM|UN|V|VB|VG|VK|VR|VS|W|WA|WB|WE|WF|WI|WK|WL|WM|WN|WO|WR|WS|WT|W\u00dc|WW|WZ|Z|ZE|ZI|ZP|ZR|ZW|ZZ)[- ]?[A-Z]{1,2}[- ]?\\d{1,4}|(ABG|ABI|AIB|AIC|ALF|ALZ|ANA|ANG|ANK|APD|ARN|ART|ASL|ASZ|AUR|AZE|BAD|BAR|BBG|BCH|BED|BER|BGD|BGL|BID|BIN|BIR|BIT|BIW|BKS|BLB|BLK|BNA|BOG|BOH|BOR|BOT|BRA|BRB|BRG|BRK|BRL|BRV|BSB|BSK|BTF|B\u00dcD|BUL|B\u00dcR|B\u00dcS|B\u00dcZ|CAS|CHA|CLP|CLZ|COC|COE|CUX|DAH|DAN|DAU|DBR|DEG|DEL|DGF|DIL|DIN|DIZ|DKB|DLG|DON|DUD|D\u00dcW|EBE|EBN|EBS|ECK|EIC|EIL|EIN|EIS|EMD|EMS|ERB|ERH|ERK|ERZ|ESB|ESW|FDB|FDS|FEU|FFB|FKB|FL\u00d6|FOR|FRG|FRI|FRW|FTL|F\u00dcS|GAN|GAP|GDB|GEL|GEO|GER|GHA|GHC|GLA|GMN|GNT|GOA|GOH|GRA|GRH|GRI|GRM|GRZ|GTH|GUB|GUN|GVM|HAB|HAL|HAM|HAS|HBN|HBS|HCH|HDH|HDL|HEB|HEF|HEI|HER|HET|HGN|HGW|HHM|HIG|HIP|HM\u00dc|HOG|HOH|HOL|HOM|HOR|H\u00d6S|HOT|HRO|HSK|HST|HVL|HWI|IGB|ILL|J\u00dcL|KEH|KEL|KEM|KIB|KLE|KLZ|K\u00d6N|K\u00d6T|K\u00d6Z|KRU|K\u00dcN|KUS|KYF|LAN|LAU|LBS|LBZ|LDK|LDS|LEO|LER|LEV|LIB|LIF|LIP|L\u00d6B|LOS|LRO|LSZ|L\u00dcN|LUP|LWL|MAB|MAI|MAK|MAL|MED|MEG|MEI|MEK|MEL|MER|MET|MGH|MGN|MHL|MIL|MKK|MOD|MOL|MON|MOS|MSE|MSH|MSP|MST|MTK|MTL|M\u00dcB|M\u00dcR|MYK|MZG|NAB|NAI|NAU|NDH|NEA|NEB|NEC|NEN|NES|NEW|NMB|NMS|NOH|NOL|NOM|NOR|NVP|NWM|OAL|OBB|OBG|OCH|OHA|\u00d6HR|OHV|OHZ|OPR|OSL|OVI|OVL|OVP|PAF|PAN|PAR|PCH|PEG|PIR|PL\u00d6|PR\u00dc|QFT|QLB|RDG|REG|REH|REI|RID|RIE|ROD|ROF|ROK|ROL|ROS|ROT|ROW|RSL|R\u00dcD|R\u00dcG|SAB|SAD|SAN|SAW|SBG|SBK|SCZ|SDH|SDL|SDT|SEB|SEE|SEF|SEL|SFB|SFT|SGH|SHA|SHG|SHK|SHL|SIG|SIM|SLE|SLF|SLK|SLN|SLS|SL\u00dc|SLZ|SM\u00dc|SOB|SOG|SOK|S\u00d6M|SON|SPB|SPN|SRB|SRO|STA|STB|STD|STE|STL|SUL|S\u00dcW|SWA|SZB|TBB|TDO|TET|TIR|T\u00d6L|TUT|UEM|UER|UFF|USI|VAI|VEC|VER|VIB|VIE|VIT|VOH|WAF|WAK|WAN|WAR|WAT|WBS|WDA|WEL|WEN|WER|WES|WHV|WIL|WIS|WIT|WIZ|WLG|WMS|WND|WOB|WOH|WOL|WOR|WOS|WRN|WSF|WST|WSW|WTL|WTM|WUG|W\u00dcM|WUN|WUR|WZL|ZEL|ZIG)[- ]?(([A-Z][- ]?\\d{1,4})|([A-Z]{2}[- ]?\\d{1,3})))[- ]?(E|H)?$", "", false},
+	{"de-LI", "^FL[- ]?\\d{1,5}[UZ]?$", "", false},
+	{"en-IN", "^[A-Z]{2}[ -]?[0-9]{1,2}(?:[ -]?[A-Z])(?:[ -]?[A-Z]*)?[ -]?[0-9]{4}$", "", false},
+	{"en-SG", "^[A-Z]{3}[ -]?[\\d]{4}[ -]?[A-Z]{1}$", "", false},
+	{"es-AR", "^(([A-Z]{2} ?[0-9]{3} ?[A-Z]{2})|([A-Z]{3} ?[0-9]{3}))$", "", false},
+	{"fi-FI", "^(?=.{4,7})(([A-Z]{1,3}|[0-9]{1,3})[\\s-]?([A-Z]{1,3}|[0-9]{1,5}))$", "", false},
+	{"hu-HU", "^((((?!AAA)(([A-NPRSTVZWXY]{1})([A-PR-Z]{1})([A-HJ-NPR-Z]))|(A[ABC]I)|A[ABC]O|A[A-W]Q|BPI|BPO|UCO|UDO|XAO)-(?!000)\\d{3})|(M\\d{6})|((CK|DT|CD|HC|H[ABEFIKLMNPRSTVX]|MA|OT|R[A-Z]) \\d{2}-\\d{2})|(CD \\d{3}-\\d{3})|(C-(C|X) \\d{4})|(X-(A|B|C) \\d{4})|(([EPVZ]-\\d{5}))|(S A[A-Z]{2} \\d{2})|(SP \\d{2}-\\d{2}))$", "", false},
+	{"pt-BR", "^[A-Z]{3}[ -]?[0-9][A-Z][0-9]{2}|[A-Z]{3}[ -]?[0-9]{4}$", "", false},
+	{"pt-PT", "^(([A-Z]{2}[ -\u00b7]?[0-9]{2}[ -\u00b7]?[0-9]{2})|([0-9]{2}[ -\u00b7]?[A-Z]{2}[ -\u00b7]?[0-9]{2})|([0-9]{2}[ -\u00b7]?[0-9]{2}[ -\u00b7]?[A-Z]{2})|([A-Z]{2}[ -\u00b7]?[0-9]{2}[ -\u00b7]?[A-Z]{2}))$", "", false},
+	{"sq-AL", "^[A-Z]{2}[- ]?((\\d{3}[- ]?(([A-Z]{2})|T))|(R[- ]?\\d{3}))$", "", false},
+	{"sv-SE", "^[A-HJ-PR-UW-Z]{3} ?[\\d]{2}[A-HJ-PR-UW-Z1-9]$|(^[A-Z\u00c5\u00c4\u00d6 ]{2,7}$)", "", true},
+	{"en-PK", "(^[A-Z]{2}((\\s|-){0,1})[0-9]{3,4}((\\s|-)[0-9]{2}){0,1}$)|(^[A-Z]{3}((\\s|-){0,1})[0-9]{3,4}((\\s|-)[0-9]{2}){0,1}$)|(^[A-Z]{4}((\\s|-){0,1})[0-9]{3,4}((\\s|-)[0-9]{2}){0,1}$)|(^[A-Z]((\\s|-){0,1})[0-9]{4}((\\s|-)[0-9]{2}){0,1}$)", "", true},
+}
